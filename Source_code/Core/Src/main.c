@@ -74,7 +74,6 @@ static void MX_TIM2_Init(void);
 uint8_t temp = 0;
 uint8_t buffer[MAX_BUFFER_SIZE];
 uint8_t command_line[MAX_BUFFER_SIZE];
-uint8_t communication_line[MAX_BUFFER_SIZE];
 uint8_t index_buffer = 0;
 uint8_t buffer_flag = 0;
 
@@ -136,23 +135,23 @@ void uart_communication_fsm(){
 	case WAIT_RES:
 		if (strcmp((char *)command_line,"RST#") == 0){
 			cmn_status = EXC_RES;
-			uint32_t ADC_value = 0;
-			HAL_ADC_Start(&hadc1);
-			ADC_value =  HAL_ADC_GetValue(&hadc1);
-			sprintf((char *)communication_line, "!ADC=%d# \r",ADC_value);
 		}
 		break;
 	case EXC_RES:
-		HAL_UART_Transmit(&huart2, communication_line, sizeof(communication_line), 1000);
+		setTimer(300, 1);
+		uint32_t ADC_value = 0;
+		HAL_ADC_Start(&hadc1);
+		ADC_value =  HAL_ADC_GetValue(&hadc1);
+		char str[MAX_BUFFER_SIZE];
+		HAL_UART_Transmit(&huart2, (void *)str, sprintf(str, "!ADC=%d# \r", ADC_value), 1000);
 		cmn_status = STOP_RES;
-		setTimer(300, 2);
 		break;
 	case STOP_RES:
 		if (strcmp((char *)command_line, "OK#") == 0) {
 			cmn_status = WAIT_RES;
 			memset(command_line, 0, MAX_BUFFER_SIZE);
 		}
-		if (timer_flag[2] == 1){
+		if (timer_flag[1] == 1){
 			cmn_status = EXC_RES;
 		}
 		break;
@@ -194,9 +193,8 @@ HAL_TIM_Base_Start_IT(&htim2);
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-
 	HAL_UART_Receive_IT(&huart2, &temp, 1);
-	setTimer(100,3);
+	setTimer(100,0);
   while (1)
   {
     /* USER CODE END WHILE */
@@ -207,7 +205,7 @@ HAL_TIM_Base_Start_IT(&htim2);
 		  uart_communication_fsm();
 	  if (timer_flag[3] == 1){
 		  HAL_GPIO_TogglePin(led_yellow_GPIO_Port, led_yellow_Pin);
-		  setTimer(100,3);
+		  setTimer(100,0);
 	  }
     /* USER CODE BEGIN 3 */
   }
