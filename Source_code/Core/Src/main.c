@@ -194,9 +194,7 @@ HAL_TIM_Base_Start_IT(&htim2);
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-uint8_t pData[] = "My protocol is getting started...\r\n";
-HAL_Delay(1000);
-HAL_UART_Transmit(&huart2, pData, sizeof(pData), 1000);
+
 	HAL_UART_Receive_IT(&huart2, &temp, 1);
 	setTimer(100,3);
   while (1)
